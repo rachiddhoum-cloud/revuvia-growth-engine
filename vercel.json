@@ -16,6 +16,11 @@
     { "path": "/api/gsc/sync", "schedule": "0 9 * * *" },
     { "path": "/api/sales/analytics", "schedule": "15 9 * * 1" },
     { "path": "/api/ahrefs/sync", "schedule": "30 9 * * 2" },
-    { "path": "/api/ops/outreach", "schedule": "0 10 * * 5" }
+    { "path": "/api/ops/outreach", "schedule": "0 10 * * 5" },
+    { "path": "/api/acquisition/nurture", "schedule": "0 7 * * *" },
+    { "path": "/api/acquisition/briefing", "schedule": "20 7 * * *" },
+    { "path": "/api/acquisition/seo-intelligence", "schedule": "0 5 * * 1" },
+    { "path": "/api/acquisition/learning", "schedule": "30 5 * * 1" },
+    { "path": "/api/acquisition/dashboard", "schedule": "45 7 * * 1" }
   ]
 }

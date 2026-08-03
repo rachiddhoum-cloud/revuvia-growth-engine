@@ -1,0 +1,11 @@
+export * from "@/lib/acquisition/types";
+export { loadContentHub } from "@/lib/acquisition/content-hub";
+export { captureLead, trackCtaEvent, loadContentCtas, isValidLeadEmail } from "@/lib/acquisition/lead-capture";
+export { recordJourneyEvent, loadJourneyFunnel } from "@/lib/acquisition/journey";
+export { runNurtureCycle, loadNurtureMetrics } from "@/lib/acquisition/nurture";
+export { loadAcquisitionDashboard } from "@/lib/acquisition/dashboard";
+export { loadSalesPriorities } from "@/lib/acquisition/sales-priority";
+export { runCasLearningCycle } from "@/lib/acquisition/learning";
+export { runSeoIntelligenceCycle } from "@/lib/acquisition/seo-intelligence";
+export { buildCasFounderBriefing, loadFounderBriefing } from "@/lib/acquisition/founder-briefing";
+export { loadContentLibrary } from "@/lib/acquisition/library-loader";

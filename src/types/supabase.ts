@@ -75,6 +75,13 @@ export interface KeywordRow {
   priority: number | null;
   competitors: Json;
   serp: Json;
+  content_status: string | null;
+  page_role: string | null;
+  traffic_estimate: number | null;
+  expected_leads: number | null;
+  expected_mrr: number | null;
+  archived_at: string | null;
+  content_item_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -405,7 +412,11 @@ export type ReportType =
   | "sales_queue"
   | "sales_analytics"
   | "ceo_sales"
-  | "sales_briefing";
+  | "sales_briefing"
+  | "cas_dashboard"
+  | "cas_journey"
+  | "cas_learning"
+  | "seo_intelligence_weekly";
 
 export interface ReportRow {
   id: string;
@@ -602,6 +613,138 @@ export interface PipelineEventRow {
   created_at: string;
 }
 
+export interface ContentCtaRow {
+  id: string;
+  owner_id: string;
+  content_item_id: string;
+  label: string;
+  cta_type: string;
+  destination_url: string;
+  position: string;
+  is_primary: boolean;
+  is_active: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CtaConversionRow {
+  id: string;
+  owner_id: string;
+  cta_id: string | null;
+  content_item_id: string | null;
+  event_type: string;
+  visitor_id: string | null;
+  email: string | null;
+  referrer: string | null;
+  utm_source: string | null;
+  utm_medium: string | null;
+  utm_campaign: string | null;
+  metadata: Json;
+  created_at: string;
+}
+
+export interface AcquisitionLeadRow {
+  id: string;
+  owner_id: string;
+  email: string;
+  full_name: string | null;
+  company: string | null;
+  phone: string | null;
+  source: string;
+  content_item_id: string | null;
+  cta_id: string | null;
+  keyword_id: string | null;
+  prospect_id: string | null;
+  visitor_id: string | null;
+  utm_source: string | null;
+  utm_medium: string | null;
+  utm_campaign: string | null;
+  referrer: string | null;
+  status: string;
+  revuvia_user_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface NurtureSequenceRow {
+  id: string;
+  owner_id: string;
+  name: string;
+  trigger: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface NurtureStepRow {
+  id: string;
+  sequence_id: string;
+  owner_id: string;
+  step_order: number;
+  delay_hours: number;
+  template_key: string;
+  subject: string;
+  body_markdown: string;
+  created_at: string;
+}
+
+export interface NurtureEnrollmentRow {
+  id: string;
+  owner_id: string;
+  sequence_id: string;
+  lead_id: string;
+  current_step: number;
+  status: string;
+  next_send_at: string | null;
+  enrolled_at: string;
+  completed_at: string | null;
+}
+
+export interface NurtureEventRow {
+  id: string;
+  owner_id: string;
+  enrollment_id: string;
+  step_id: string | null;
+  event_type: string;
+  metadata: Json;
+  created_at: string;
+}
+
+export interface JourneyEventRow {
+  id: string;
+  owner_id: string;
+  visitor_id: string | null;
+  lead_id: string | null;
+  email: string | null;
+  stage: string;
+  channel: string | null;
+  content_item_id: string | null;
+  cta_id: string | null;
+  revenue_usd: number | null;
+  metadata: Json;
+  occurred_at: string;
+}
+
+export interface ContentRoiSnapshotRow {
+  id: string;
+  owner_id: string;
+  content_item_id: string | null;
+  keyword_id: string | null;
+  period_start: string;
+  period_end: string;
+  visits: number | null;
+  leads: number | null;
+  trials: number | null;
+  paid_customers: number | null;
+  mrr_usd: number | null;
+  cta_clicks: number | null;
+  email_opens: number | null;
+  email_clicks: number | null;
+  channel: string | null;
+  created_at: string;
+}
+
 export interface JobRunRow {
   id: string;
   job_id: string;
@@ -670,6 +813,15 @@ export interface Database {
       knowledge_base: T<KnowledgeEntryRow>;
       pipeline_events: T<PipelineEventRow>;
       prospect_messages: T<ProspectMessageRow>;
+      content_ctas: T<ContentCtaRow>;
+      cta_conversions: T<CtaConversionRow>;
+      acquisition_leads: T<AcquisitionLeadRow>;
+      nurture_sequences: T<NurtureSequenceRow>;
+      nurture_steps: T<NurtureStepRow>;
+      nurture_enrollments: T<NurtureEnrollmentRow>;
+      nurture_events: T<NurtureEventRow>;
+      journey_events: T<JourneyEventRow>;
+      content_roi_snapshots: T<ContentRoiSnapshotRow>;
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;

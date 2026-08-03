@@ -9,6 +9,7 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test:unit": "vitest run",
+    "verify": "npm run lint && npm run typecheck && npm run build",
     "ops:session-token": "node scripts/derive-ops-session.mjs",
     "db:push": "supabase db push",
     "db:reset": "supabase db reset"

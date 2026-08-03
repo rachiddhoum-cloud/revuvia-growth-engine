@@ -3,7 +3,13 @@ import type { NextRequest } from "next/server";
 
 import { isApiAuthorizedEdge, isOpsSessionAuthorizedEdge } from "@/lib/security/edge-auth";
 
-const PUBLIC_API_PATHS = new Set(["/api/health", "/api/gsc/callback", "/api/ops/login"]);
+const PUBLIC_API_PATHS = new Set([
+  "/api/health",
+  "/api/gsc/callback",
+  "/api/ops/login",
+  "/api/public/leads",
+  "/api/public/cta",
+]);
 
 function isPublicApi(pathname: string): boolean {
   return PUBLIC_API_PATHS.has(pathname);

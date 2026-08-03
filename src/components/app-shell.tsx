@@ -14,6 +14,10 @@ import {
   Settings,
   Sparkles,
   ShieldCheck,
+  Target,
+  Mail,
+  Route,
+  HandCoins,
   type LucideIcon,
 } from "lucide-react";
 
@@ -28,7 +32,12 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { href: "/dashboard", label: "CEO Dashboard", icon: LayoutDashboard, section: "Overview" },
+  { href: "/acquisition", label: "Acquisition", icon: Target, section: "Overview" },
+  { href: "/inbox", label: "Founder Inbox", icon: Mail, section: "Overview" },
   { href: "/approvals", label: "Approvals", icon: ShieldCheck, section: "Overview" },
+  { href: "/content-hub", label: "Content Hub", icon: Search, section: "Acquisition" },
+  { href: "/journey", label: "Customer Journey", icon: Route, section: "Acquisition" },
+  { href: "/sales", label: "Sales Intelligence", icon: HandCoins, section: "Acquisition" },
   { href: "/seo", label: "SEO Intelligence", icon: Search, section: "Modules" },
   { href: "/content", label: "Content Factory", icon: FileText, section: "Modules" },
   { href: "/calendar", label: "Calendar", icon: CalendarDays, section: "Modules" },
@@ -89,7 +98,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             ))}
           </div>
 
-          {["Modules", "Workspace"].map((s) => (
+          {["Modules", "Acquisition", "Workspace"].map((s) => (
             <div key={s} className="space-y-1">
               <p className="px-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">
                 {s}
