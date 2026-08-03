@@ -1,0 +1,21 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "crons": [
+    { "path": "/api/learning/cycle", "schedule": "0 4 * * 1" },
+    { "path": "/api/ops/execute", "schedule": "5 5 * * 1" },
+    { "path": "/api/jobs/run", "schedule": "0 6 * * *" },
+    { "path": "/api/ops/plan", "schedule": "15 6 * * 1" },
+    { "path": "/api/ops/brief", "schedule": "30 6 * * *" },
+    { "path": "/api/reports/generate", "schedule": "0 7 * * 1" },
+    { "path": "/api/ops/inbox", "schedule": "15 7 * * *" },
+    { "path": "/api/sales/daily", "schedule": "30 7 * * 1-5" },
+    { "path": "/api/reports/weekly", "schedule": "0 8 * * 1" },
+    { "path": "/api/ops/report", "schedule": "15 8 * * 1" },
+    { "path": "/api/ops/publish", "schedule": "30 8 * * *" },
+    { "path": "/api/gsc/recommendations", "schedule": "45 8 * * 1" },
+    { "path": "/api/gsc/sync", "schedule": "0 9 * * *" },
+    { "path": "/api/sales/analytics", "schedule": "15 9 * * 1" },
+    { "path": "/api/ahrefs/sync", "schedule": "30 9 * * 2" },
+    { "path": "/api/ops/outreach", "schedule": "0 10 * * 5" }
+  ]
+}
