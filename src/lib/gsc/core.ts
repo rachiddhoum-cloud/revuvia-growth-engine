@@ -137,6 +137,10 @@ export function aggregateDailyRows(
   pageRows: PageRow[],
   searchType = "web"
 ): DailyAggregate {
+  if (queryRows.length === 0 && pageRows.length === 0) {
+    return { rows: [], clicks: 0, impressions: 0, queries: 0, pages: 0 };
+  }
+
   const date = queryRows[0]?.date ?? pageRows[0]?.date ?? "";
   const clicks = queryRows.reduce((a, r) => a + r.clicks, 0);
   const impressions = queryRows.reduce((a, r) => a + r.impressions, 0);

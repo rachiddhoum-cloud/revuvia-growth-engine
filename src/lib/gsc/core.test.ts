@@ -87,9 +87,11 @@ describe("aggregateDailyRows", () => {
     expect(agg.rows[0].pages).toBe(1);
   });
 
-  it("returns zero-safe aggregates for empty input", () => {
+  it("returns no rows for empty input", () => {
     const agg = aggregateDailyRows([], []);
-    expect(agg.rows).toEqual([{ date: "", search_type: "web", clicks: 0, impressions: 0, ctr: 0, position: 0, pages: 0, queries: 0 }]);
+    expect(agg.rows).toEqual([]);
+    expect(agg.clicks).toBe(0);
+    expect(agg.impressions).toBe(0);
   });
 });
 

@@ -62,7 +62,7 @@ export async function GET(request: Request): Promise<NextResponse> {
         refresh_token: tokens.refreshToken,
         expires_at: tokens.expiresAt,
       },
-      { onConflict: "owner_id" }
+      { onConflict: "owner_id,site_url" }
     );
     if (credError) throw credError;
 

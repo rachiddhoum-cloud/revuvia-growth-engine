@@ -162,6 +162,23 @@ describe("syncGscData", () => {
     expect(summary.upserted.queries).toBe(1001 * 28);
   });
 
+  it("succeeds when the site has no search data yet", async () => {
+    const client: GscClient = {
+      async searchAnalytics() {
+        return [];
+      },
+      async listSites() {
+        return [];
+      },
+    };
+    const mem = inMemoryStorage(null);
+    const summary = await syncGscData({ credentials: creds, client, storage: mem.storage }, "2026-08-09");
+    expect(summary.ok).toBe(true);
+    expect(summary.upserted).toEqual({ queries: 0, pages: 0, daily: 0 });
+    expect(mem.daily).toEqual([]);
+    expect(mem.logs[0].status).toBe("success");
+  });
+
   it("logs failures and returns a failed summary", async () => {
     const client: GscClient = {
       async searchAnalytics() {
