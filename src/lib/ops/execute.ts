@@ -58,6 +58,8 @@ import {
 import { findEvidence, evidenceLine } from "@/lib/learning/confidence";
 import { toKnowledgeEntry } from "@/lib/learning/server";
 import type { KnowledgeEntry } from "@/lib/learning/types";
+import { pushArticleToMarketingSite } from "@/lib/publishing/site-bridge";
+import { blogPostUrl } from "@/lib/publishing/site-config";
 
 /** Topic words from a title (fuzzy knowledge matching). */
 function topicWords(title: string): string {
@@ -602,11 +604,27 @@ export async function runPublishing(ownerId = "system"): Promise<ExecutionSummar
     if (slot.platform === "blog") {
       const item = snapshot.content.find((c) => c.id === slot.contentItemId);
       if (item?.status === "published") continue;
+      const publishedAt = new Date().toISOString();
       const { error } = await sb
         .from("content_items")
-        .update({ status: "published", published_at: new Date().toISOString() })
+        .update({ status: "published", published_at: publishedAt })
         .eq("id", slot.contentItemId);
       if (error) throw new Error(`Failed to publish blog: ${error.message}`);
+
+      const { data: fullArticle, error: loadError } = await sb
+        .from("content_items")
+        .select(
+          "id,slug,title,excerpt,body_markdown,meta_title,meta_description,tags,published_at,cover_url"
+        )
+        .eq("id", slot.contentItemId)
+        .maybeSingle();
+      if (loadError) throw new Error(`Failed to load published article: ${loadError.message}`);
+      if (fullArticle) {
+        await pushArticleToMarketingSite({
+          ...fullArticle,
+          published_at: fullArticle.published_at ?? publishedAt,
+        });
+      }
       published++;
     } else {
       const { data: post, error: postError } = await sb
@@ -623,7 +641,7 @@ export async function runPublishing(ownerId = "system"): Promise<ExecutionSummar
       const credential = await loadSocialCredential(sb, ownerId, slot.platform);
       if (credential) {
         const article = snapshot.content.find((c) => c.id === slot.contentItemId);
-        const url = article?.slug ? `https://revuvia.app/blog/${article.slug}` : null;
+        const url = article?.slug ? blogPostUrl(article.slug) : null;
         try {
           const result = await publishToPlatform(credential, post.body, url);
           const { error: upErr } = await sb

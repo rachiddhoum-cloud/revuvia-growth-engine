@@ -8,6 +8,7 @@
  */
 
 import type { ArticleRef, PublishingPlan, PublishingSlot, PublishPlatform } from "@/lib/ops/types";
+import { blogPostUrl } from "@/lib/publishing/site-config";
 
 export interface PublishingOptions {
   /** First day of the queue window, yyyy-mm-dd (defaults to today local). */
@@ -42,7 +43,7 @@ export function addDays(date: string, offset: number): string {
 
 /** Platform-specific draft copy for an article. */
 export function draftForPlatform(article: ArticleRef, platform: PublishPlatform): string {
-  const url = article.slug ? `https://revuvia.app/blog/${article.slug}` : "link in bio";
+  const url = article.slug ? blogPostUrl(article.slug) : "link in bio";
   const hook = article.excerpt?.slice(0, 140) ?? article.title;
   switch (platform) {
     case "blog":

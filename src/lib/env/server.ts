@@ -34,6 +34,10 @@ const serverEnvSchema = z.object({
   OAUTH_STATE_SECRET: z.string().min(16, "OAUTH_STATE_SECRET must be at least 16 characters").optional(),
   AHREFS_API_TOKEN: z.string().min(1).optional(),
   AHREFS_TARGET: z.string().min(1).optional(),
+  REVUVIA_SITE_URL: z.string().url("REVUVIA_SITE_URL must be a valid URL").optional(),
+  BLOG_PUBLISH_WEBHOOK_URL: z.string().url("BLOG_PUBLISH_WEBHOOK_URL must be a valid URL").optional(),
+  BLOG_PUBLISH_WEBHOOK_SECRET: z.string().min(16).optional(),
+  DEFAULT_OWNER_ID: z.string().optional(),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
@@ -67,6 +71,10 @@ function readAll(): Record<string, string | undefined> {
     OAUTH_STATE_SECRET: process.env.OAUTH_STATE_SECRET,
     AHREFS_API_TOKEN: process.env.AHREFS_API_TOKEN,
     AHREFS_TARGET: process.env.AHREFS_TARGET,
+    REVUVIA_SITE_URL: process.env.REVUVIA_SITE_URL,
+    BLOG_PUBLISH_WEBHOOK_URL: process.env.BLOG_PUBLISH_WEBHOOK_URL,
+    BLOG_PUBLISH_WEBHOOK_SECRET: process.env.BLOG_PUBLISH_WEBHOOK_SECRET,
+    DEFAULT_OWNER_ID: process.env.DEFAULT_OWNER_ID,
   };
 }
 

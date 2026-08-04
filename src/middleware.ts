@@ -3,16 +3,24 @@ import type { NextRequest } from "next/server";
 
 import { isApiAuthorizedEdge, isOpsSessionAuthorizedEdge } from "@/lib/security/edge-auth";
 
+const PUBLIC_API_PREFIXES = ["/api/public/"];
+
 const PUBLIC_API_PATHS = new Set([
   "/api/health",
   "/api/gsc/callback",
   "/api/ops/login",
   "/api/public/leads",
   "/api/public/cta",
+  "/api/public/blog",
 ]);
 
 function isPublicApi(pathname: string): boolean {
-  return PUBLIC_API_PATHS.has(pathname);
+  if (PUBLIC_API_PATHS.has(pathname)) return true;
+  return PUBLIC_API_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+}
+
+function isPublicPage(pathname: string): boolean {
+  return pathname === "/blog" || pathname.startsWith("/blog/");
 }
 
 function isStaticAsset(pathname: string): boolean {
@@ -48,6 +56,10 @@ export function middleware(request: NextRequest) {
   }
 
   if (pathname === "/login") {
+    return NextResponse.next();
+  }
+
+  if (isPublicPage(pathname)) {
     return NextResponse.next();
   }
 

@@ -57,13 +57,13 @@ describe("draftForPlatform", () => {
   it("blog draft contains title and URL", () => {
     const draft = draftForPlatform(articles[0], "blog");
     expect(draft).toContain("SEO pour restaurants");
-    expect(draft).toContain("revuvia.app/blog/seo-restaurants");
+    expect(draft).toContain("revuvia.com/blog/seo-restaurants");
   });
 
   it("x draft is a single short line", () => {
     const draft = draftForPlatform(articles[0], "x");
     expect(draft.length).toBeLessThan(280);
-    expect(draft).toContain("revuvia.app/blog/seo-restaurants");
+    expect(draft).toContain("revuvia.com/blog/seo-restaurants");
   });
 
   it("linkedin draft has a CTA question", () => {
