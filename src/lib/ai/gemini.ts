@@ -26,6 +26,8 @@ export interface CompletionResult {
 }
 
 const GEMINI_PRICING: Record<string, { input: number; output: number }> = {
+  "gemini-flash-latest": { input: 0.1, output: 0.4 },
+  "gemini-flash-lite-latest": { input: 0.075, output: 0.3 },
   "gemini-2.0-flash": { input: 0.1, output: 0.4 },
   "gemini-2.0-flash-lite": { input: 0.075, output: 0.3 },
   "gemini-1.5-flash": { input: 0.075, output: 0.3 },

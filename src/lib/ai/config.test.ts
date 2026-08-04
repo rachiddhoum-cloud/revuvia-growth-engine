@@ -41,7 +41,7 @@ describe("AI provider config", () => {
     withEnv({ GEMINI_API_KEY: "gem-key", AI_PROVIDER: "auto" });
     expect(resolveProvider()).toBe("gemini");
     expect(configuredProviders()).toEqual(["gemini"]);
-    expect(heavyModel()).toEqual({ provider: "gemini", model: "gemini-2.0-flash" });
+    expect(heavyModel()).toEqual({ provider: "gemini", model: "gemini-flash-latest" });
   });
 
   it("respects explicit AI_PROVIDER=gemini", () => {

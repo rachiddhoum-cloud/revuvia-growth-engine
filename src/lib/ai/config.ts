@@ -89,7 +89,7 @@ export function heavyModel(preferredProvider?: AiProviderName): AiModelConfig {
     case "anthropic":
       return { provider, model: "claude-sonnet-4-5-20250929" };
     case "gemini":
-      return { provider, model: "gemini-2.0-flash" };
+      return { provider, model: "gemini-flash-latest" };
     case "openai":
       return { provider, model: "gpt-4o" };
     default: {
@@ -106,7 +106,7 @@ export function fastModel(preferredProvider?: AiProviderName): AiModelConfig {
     case "anthropic":
       return { provider, model: "claude-3-5-haiku-20241022" };
     case "gemini":
-      return { provider, model: "gemini-2.0-flash-lite" };
+      return { provider, model: "gemini-flash-lite-latest" };
     case "openai":
       return { provider, model: "gpt-4o-mini" };
     default: {
