@@ -117,8 +117,9 @@ export class SupabasePipelineStore implements PipelineStore {
       {
         id: item.id,
         owner_id: item.ownerId ?? this.defaultOwnerId,
+        kind: "article",
         title: item.title ?? item.keyword,
-        slug: item.slug ?? item.keyword,
+        slug: item.slug ?? item.keyword.replace(/\s+/g, "-").toLowerCase().slice(0, 80),
         status: (item.status ?? "idea") as Database["public"]["Tables"]["content_items"]["Row"]["status"],
         body_markdown: item.bodyMarkdown ?? null,
         excerpt: item.excerpt ?? null,

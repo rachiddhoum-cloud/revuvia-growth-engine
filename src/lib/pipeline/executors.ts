@@ -13,14 +13,17 @@
  * Everything is logged; every call is observable through `logger`.
  */
 
+import { randomUUID } from "node:crypto";
+
 import { logger } from "@/lib/log/logger";
 import { generateContent } from "@/lib/content";
 import { scoreContent } from "@/lib/quality";
 import { buildInternalLinkPlan } from "@/lib/linking";
 import { repurposeToPosts } from "@/lib/content";
-import type { PipelineStore, StageExecutors } from "@/lib/pipeline/pipeline";
+import type { PipelineContentItem, PipelineStore, StageExecutors } from "@/lib/pipeline/pipeline";
 import type { QualityInput } from "@/lib/quality";
-import type { PipelineContentItem } from "@/lib/pipeline/pipeline";
+import { resolveOwnerId } from "@/lib/owner";
+import { pushArticleToMarketingSite } from "@/lib/publishing/site-bridge";
 
 export interface ExecutorsDeps {
   store: PipelineStore;
@@ -62,8 +65,9 @@ export function createPipelineExecutors(deps: ExecutorsDeps): StageExecutors {
 
   return {
     async createIdea(input) {
-      logger.info(`Creating idea`, { keyword: input.keyword, ownerId: input.ownerId });
-      return { id: `idea-${input.keyword}`.replace(/[^a-z0-9-]/gi, "-").toLowerCase() };
+      const id = randomUUID();
+      logger.info(`Creating idea`, { id, keyword: input.keyword, ownerId: input.ownerId });
+      return { id };
     },
 
     async keywordResearch(input) {
@@ -86,10 +90,13 @@ export function createPipelineExecutors(deps: ExecutorsDeps): StageExecutors {
       });
       logger.info(`Article written`, { contentId: input.contentId, title: content.title });
 
+      const existing = await store.getContentItem(input.contentId);
+      const ownerId = existing?.ownerId ?? resolveOwnerId();
+
       // Persist the generated content onto the pipeline item.
       await store.saveContentItem({
         id: input.contentId,
-        ownerId: "system",
+        ownerId,
         keyword: input.keyword,
         status: "writing",
         title: content.title,
@@ -157,8 +164,22 @@ export function createPipelineExecutors(deps: ExecutorsDeps): StageExecutors {
 
     async publish(input) {
       const article = await store.getContentItem(input.contentId);
+      const publishedAt = new Date().toISOString();
       await store.setContentStatus(input.contentId, "published");
       logger.info(`Content published`, { contentId: input.contentId, title: article?.title });
+      if (article?.slug && article?.title) {
+        await pushArticleToMarketingSite({
+          id: input.contentId,
+          slug: article.slug,
+          title: article.title,
+          excerpt: article.excerpt ?? null,
+          body_markdown: article.bodyMarkdown ?? null,
+          meta_title: article.metaTitle ?? null,
+          meta_description: article.metaDescription ?? null,
+          tags: article.tags ?? null,
+          published_at: publishedAt,
+        });
+      }
     },
 
     async recordPerformance(input) {

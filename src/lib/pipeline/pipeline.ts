@@ -142,7 +142,6 @@ export async function runPipeline(
       results.push({ stage: "idea", status: "passed", attempt: 1, completedAt: new Date().toISOString() });
     }
   } else {
-    await store.startStage("", "idea", 1);
     try {
       const created = await executors.createIdea({ keyword, ownerId });
       contentId = created.id;
@@ -153,11 +152,11 @@ export async function runPipeline(
         status: "idea",
         primaryKeyword: keyword,
       });
+      await store.startStage(contentId, "idea", 1);
       await store.passStage(contentId, "idea", 1, { keyword });
       results.push({ stage: "idea", status: "passed", attempt: 1, completedAt: new Date().toISOString() });
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      await store.failStage("", "idea", 1, message);
       throw new Error(`Pipeline failed at stage "idea": ${message}`);
     }
   }
