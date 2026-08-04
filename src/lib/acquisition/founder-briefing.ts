@@ -26,7 +26,7 @@ export async function loadFounderBriefing(ownerId?: string): Promise<FounderBrie
     .eq("period_start", today)
     .maybeSingle();
 
-  if (cached?.data && typeof cached.data === "object") {
+  if (cached?.data && typeof cached.data === "object" && "yesterday" in cached.data) {
     return cached.data as unknown as FounderBriefing;
   }
 
