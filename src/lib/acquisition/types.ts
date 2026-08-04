@@ -68,6 +68,63 @@ export interface CasDashboardModel {
   topChannel: { channel: string; conversions: number }[];
 }
 
+export interface RevenueAuditKpis {
+  visitors: number;
+  ctaImpressions: number;
+  ctaClicks: number;
+  ctaCtr: number;
+  leadsCaptured: number;
+  emailEnrollments: number;
+  emailDeliveries: number;
+  trialActivations: number;
+  paidSubscriptions: number;
+  failedPayments: number;
+}
+
+export interface MetricBlocker {
+  metric: string;
+  value: number;
+  blocker: string;
+  why: string;
+  lostMrrUsd: number;
+  action: string;
+  ice: { impact: number; confidence: number; ease: number; score: number };
+}
+
+export interface DormantOutreach {
+  email: string;
+  signedUpAt: string;
+  daysDormant: number;
+  emailDraft: string;
+  whatsAppDraft: string;
+  followUpDraft: string;
+}
+
+export interface IceAction {
+  rank: number;
+  action: string;
+  ice: number;
+}
+
+export interface RevenueAuditResult {
+  date: string;
+  kpis: RevenueAuditKpis;
+  blockers: MetricBlocker[];
+  biggestBlocker: MetricBlocker;
+  highestRoiAction: { action: string; ice: number };
+  revenueForecast: { days7: number; days30: number; note: string };
+  customersAtRisk: string[];
+  dormantLeads: DormantOutreach[];
+  trialsWithoutActivation: DormantOutreach[];
+  emailsWaiting: { email: string; step: number; dueAt: string }[];
+  cronFailures: { cron: string; reason: string; fix: string; logs: string }[];
+  failedAutomations: string[];
+  acquisitionPlan: string[] | null;
+  activationPlan: string[] | null;
+  salesPlan: string[] | null;
+  iceActions: IceAction[];
+}
+
 export interface FounderBriefing {
   date: string;
   yesterday: {
@@ -80,6 +137,8 @@ export interface FounderBriefing {
   recommendedAction: string;
   highestRoiTask: string;
   readMinutes: number;
+  /** Revenue Operations daily audit (auto-generated). */
+  revenue?: RevenueAuditResult;
 }
 
 export interface SalesPriorityRow {

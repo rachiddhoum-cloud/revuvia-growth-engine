@@ -8,4 +8,5 @@ export { loadSalesPriorities } from "@/lib/acquisition/sales-priority";
 export { runCasLearningCycle } from "@/lib/acquisition/learning";
 export { runSeoIntelligenceCycle } from "@/lib/acquisition/seo-intelligence";
 export { buildCasFounderBriefing, loadFounderBriefing } from "@/lib/acquisition/founder-briefing";
+export { runRevenueAudit, formatDailyFounderReport, buildDormantOutreach } from "@/lib/acquisition/revenue-audit";
 export { loadContentLibrary } from "@/lib/acquisition/library-loader";
