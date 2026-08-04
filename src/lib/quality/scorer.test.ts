@@ -90,7 +90,7 @@ const GOOD_INPUT = {
 };
 
 describe("scoreContent", () => {
-  it("passes a well-structured article with overall >= 80", () => {
+  it("passes a well-structured article at or above the pass threshold", () => {
     const result = scoreContent(GOOD_INPUT);
     expect(result.overall).toBeGreaterThanOrEqual(QUALITY_PASS_THRESHOLD);
     expect(result.passed).toBe(true);

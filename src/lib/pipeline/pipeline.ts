@@ -19,6 +19,7 @@ import type {
   SocialPostOutput,
 } from "@/types";
 import { logger } from "@/lib/log/logger";
+import { QUALITY_PASS_THRESHOLD } from "@/lib/quality";
 
 export const PIPELINE_STAGES: PipelineStage[] = [
   "idea",
@@ -35,7 +36,7 @@ export const PIPELINE_STAGES: PipelineStage[] = [
 /** Human-gated stage: pipeline pauses here and needs explicit approval. */
 export const APPROVAL_STAGE: PipelineStage = "approval";
 
-export const QUALITY_PASS_THRESHOLD = 80;
+export { QUALITY_PASS_THRESHOLD };
 
 export interface PipelineContentItem {
   id: string;

@@ -17,7 +17,8 @@
 
 import type { ContentQualityResult, QualityDimension, QualityDimensionKey } from "@/types";
 
-export const QUALITY_PASS_THRESHOLD = 80;
+/** Minimum overall score for auto-publish (bootstrap-friendly; raise when corpus matures). */
+export const QUALITY_PASS_THRESHOLD = 65;
 
 export const QUALITY_WEIGHTS: Record<QualityDimensionKey, number> = {
   seoQuality: 0.15,

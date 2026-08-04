@@ -8,6 +8,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { QUALITY_PASS_THRESHOLD } from "@/lib/quality";
 
 export interface PendingApprovalItem {
   contentId: string;
@@ -116,7 +117,7 @@ export function ApprovalQueueClient({
                   </div>
                   <div className="flex shrink-0 flex-col items-end gap-1">
                     {item.qualityScore != null && (
-                      <Badge variant={item.qualityScore >= 80 ? "success" : "secondary"}>
+                      <Badge variant={item.qualityScore >= QUALITY_PASS_THRESHOLD ? "success" : "secondary"}>
                         Score {item.qualityScore}
                       </Badge>
                     )}
