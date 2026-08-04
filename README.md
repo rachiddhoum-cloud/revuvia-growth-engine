@@ -29,6 +29,8 @@ Ouvrir http://localhost:3000/login avec le mot de passe `OPS_ACCESS_PASSWORD`.
 | `CRON_SECRET` | Oui | Bearer pour crons Vercel (min 16 car.) |
 | `OPS_ACCESS_PASSWORD` | Oui | Mot de passe page `/login` |
 | `OPS_SESSION_TOKEN` | Oui | Token cookie (dérivé via `npm run ops:session-token`) |
+| `GEMINI_API_KEY` | Pour IA gratuite | Clé [Google AI Studio](https://aistudio.google.com/apikey) ; ou `GOOGLE_AI_API_KEY` |
+| `AI_PROVIDER` | Optionnel | `gemini`, `openai`, `anthropic` ou `auto` (défaut : premier provider configuré, Gemini en priorité) |
 
 Les APIs (sauf `/api/health`, `/api/gsc/callback`, `/api/ops/login`) exigent une session ops ou un secret cron valide.
 

@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { checkDbHealth, createServiceRoleClient } from "@/lib/supabase";
 import { serverEnvStatus } from "@/lib/env";
 import { isResendConfigured } from "@/lib/email";
-import { hasAnyKey } from "@/lib/ai";
+import { hasAnyKey, getGeminiApiKey } from "@/lib/ai";
 import { isGscEnvConfigured } from "@/lib/gsc/status";
 
 export const runtime = "nodejs";
@@ -34,6 +34,7 @@ export async function GET() {
       supabase: { configured: env.ok, ok: dbOk, latencyMs, error: dbError },
       openai: { configured: Boolean(process.env.OPENAI_API_KEY) },
       anthropic: { configured: Boolean(process.env.ANTHROPIC_API_KEY) },
+      gemini: { configured: Boolean(getGeminiApiKey()) },
       ai: { configured: hasAnyKey() },
       resend: { configured: isResendConfigured() },
       gsc: { configured: isGscEnvConfigured() },

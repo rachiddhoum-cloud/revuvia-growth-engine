@@ -8,7 +8,7 @@
 
 import { z } from "zod";
 
-const providerEnum = z.enum(["openai", "anthropic", "auto"]);
+const providerEnum = z.enum(["openai", "anthropic", "gemini", "auto"]);
 
 const serverEnvSchema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: z.string().min(1, "NEXT_PUBLIC_SUPABASE_URL is required"),
@@ -20,6 +20,8 @@ const serverEnvSchema = z.object({
     .default("http://localhost:3000"),
   OPENAI_API_KEY: z.string().min(1).optional(),
   ANTHROPIC_API_KEY: z.string().min(1).optional(),
+  GEMINI_API_KEY: z.string().min(1).optional(),
+  GOOGLE_AI_API_KEY: z.string().min(1).optional(),
   AI_PROVIDER: providerEnum.default("auto"),
   RESEND_API_KEY: z.string().min(1).optional(),
   RESEND_FROM: z.string().email("RESEND_FROM must be a valid email").optional(),
@@ -57,6 +59,8 @@ function readAll(): Record<string, string | undefined> {
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
     ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
+    GEMINI_API_KEY: process.env.GEMINI_API_KEY,
+    GOOGLE_AI_API_KEY: process.env.GOOGLE_AI_API_KEY,
     AI_PROVIDER: process.env.AI_PROVIDER,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     RESEND_FROM: process.env.RESEND_FROM,

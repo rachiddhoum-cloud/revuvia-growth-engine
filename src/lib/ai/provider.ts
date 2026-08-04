@@ -1,6 +1,13 @@
-import type { AiModelConfig } from "@/lib/ai/config";
+import type { AiModelConfig, AiProviderName } from "@/lib/ai/config";
+import {
+  configuredProviders,
+  modelForProvider,
+  modelTierFor,
+  resolveProvider,
+} from "@/lib/ai/config";
 import { completeOpenAI } from "@/lib/ai/openai";
 import { completeAnthropic } from "@/lib/ai/anthropic";
+import { completeGemini } from "@/lib/ai/gemini";
 import { withRetry, withTimeout } from "@/lib/reliability";
 import { recordAiRun } from "@/lib/monitoring";
 
@@ -11,7 +18,7 @@ export interface AiCompleteOptions {
   temperature?: number;
   responseFormat?: "text" | "json";
   /** Optional explicit provider override. */
-  provider?: "openai" | "anthropic";
+  provider?: AiProviderName;
   /** Module name for run tracking (e.g. "content", "seo", "social", "leadmagnet"). */
   module?: string;
   /** Owner id for run tracking (optional; anonymous runs are recorded too). */
@@ -23,38 +30,52 @@ export interface AiResult {
   promptTokens: number;
   completionTokens: number;
   costUsd: number;
-  provider: "openai" | "anthropic";
+  provider: AiProviderName;
   model: string;
 }
 
 /** Default request timeout for a single AI call (ms). */
 const AI_TIMEOUT_MS = 90_000;
 
+function completeForProvider(
+  attempt: AiModelConfig,
+  options: AiCompleteOptions
+): Promise<{
+  content: string;
+  promptTokens: number;
+  completionTokens: number;
+  costUsd: number;
+}> {
+  switch (attempt.provider) {
+    case "openai":
+      return completeOpenAI(attempt, options);
+    case "anthropic":
+      return completeAnthropic(attempt, options);
+    case "gemini":
+      return completeGemini(attempt, options);
+    default: {
+      const neverProvider: never = attempt.provider;
+      throw new Error(`Unknown AI provider: ${neverProvider}`);
+    }
+  }
+}
+
+function buildProviderAttempts(model: AiModelConfig, options: AiCompleteOptions): AiModelConfig[] {
+  const tier = modelTierFor(model);
+  const primary = resolveProvider(options.provider ?? model.provider);
+  const rest = configuredProviders().filter((p) => p !== primary);
+  return [primary, ...rest].map((provider) => modelForProvider(provider, tier));
+}
+
 /**
  * Unified completion with provider fallback, retry and timeout.
  * - tries configured/preferred provider (or explicit `provider` override)
- * - falls back to the other provider when the primary key is missing or the
- *   primary call fails with an auth/config error
+ * - falls back to other configured providers when the primary call fails
  * - wraps every attempt with exponential-backoff retry + timeout
  * - records the run for cost tracking (fire-and-forget)
  */
 export async function aiComplete(model: AiModelConfig, options: AiCompleteOptions): Promise<AiResult> {
-  const primary: AiModelConfig = options.provider ? { ...model, provider: options.provider } : model;
-
-  const attempts: AiModelConfig[] = [primary];
-  const fallback: "openai" | "anthropic" | null =
-    primary.provider === "openai"
-      ? process.env.ANTHROPIC_API_KEY
-        ? "anthropic"
-        : null
-      : process.env.OPENAI_API_KEY
-        ? "openai"
-        : null;
-
-  if (fallback) {
-    attempts.push({ ...primary, provider: fallback });
-  }
-
+  const attempts = buildProviderAttempts(model, options);
   let lastError: Error | null = null;
 
   for (const attempt of attempts) {
@@ -62,10 +83,7 @@ export async function aiComplete(model: AiModelConfig, options: AiCompleteOption
     try {
       const result = await withTimeout(
         withRetry(
-          () =>
-            attempt.provider === "openai"
-              ? completeOpenAI(attempt, options)
-              : completeAnthropic(attempt, options),
+          () => completeForProvider(attempt, options),
           { attempts: 3, baseDelayMs: 500, maxDelayMs: 6_000 }
         ),
         AI_TIMEOUT_MS,
@@ -78,7 +96,6 @@ export async function aiComplete(model: AiModelConfig, options: AiCompleteOption
         model: attempt.model,
       };
 
-      // fire-and-forget cost tracking; never blocks or throws to the caller
       void recordAiRun({
         module: options.module ?? "ai",
         model: attempt.model,
@@ -92,8 +109,6 @@ export async function aiComplete(model: AiModelConfig, options: AiCompleteOption
       return aiResult;
     } catch (err) {
       lastError = err instanceof Error ? err : new Error(String(err));
-      // only fall back when the primary failed due to missing/unauthorized key
-      if (!/api.?key|not set|401|403/i.test(lastError.message)) break;
     }
   }
 

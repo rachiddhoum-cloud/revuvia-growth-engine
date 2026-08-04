@@ -20,7 +20,7 @@ const configItems = [
     icon: KeyRound,
     title: "AI providers",
     description:
-      "OpenAI and Anthropic are used for content generation, SEO analysis and lead magnets. Keys are read from .env.local (OPENAI_API_KEY, ANTHROPIC_API_KEY).",
+      "Gemini (free tier via AI Studio), OpenAI and Anthropic power content, SEO and lead magnets. Set GEMINI_API_KEY or GOOGLE_AI_API_KEY, OPENAI_API_KEY, ANTHROPIC_API_KEY, and optional AI_PROVIDER=gemini.",
   },
   {
     icon: Database,
