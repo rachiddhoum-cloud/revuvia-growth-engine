@@ -8,8 +8,9 @@
 
 import "server-only";
 
-import { createServerClient } from "@/lib/supabase/server";
+import { createServiceRoleClient } from "@/lib/supabase/service-role";
 import { weekWindow, type SnapshotInput } from "@/lib/ops/snapshot";
+import { resolveOwnerId } from "@/lib/owner";
 import type { CustomerRow, ProspectRow } from "@/types/supabase";
 import type {
   ContentItemRow,
@@ -37,7 +38,7 @@ export async function loadGrowthSnapshot(
   };
 
   try {
-    const sb = await createServerClient();
+    const sb = createServiceRoleClient();
 
     const dailyQuery = sb
       .from("daily_metrics")
@@ -54,11 +55,12 @@ export async function loadGrowthSnapshot(
       .select("id,owner_id,company,industry,contact_name,email,priority_score,status,last_interaction_at,recommended_message,follow_up_at,probability,notes,created_at,updated_at")
       .limit(100);
 
-    if (typeof ownerId === "string") {
-      dailyQuery.eq("owner_id", ownerId);
-      contentQuery.eq("owner_id", ownerId);
-      customersQuery.eq("owner_id", ownerId);
-      prospectsQuery.eq("owner_id", ownerId);
+    if (typeof ownerId === "string" && ownerId.trim()) {
+      const resolved = resolveOwnerId(ownerId);
+      dailyQuery.eq("owner_id", resolved);
+      contentQuery.eq("owner_id", resolved);
+      customersQuery.eq("owner_id", resolved);
+      prospectsQuery.eq("owner_id", resolved);
     }
 
     const [daily, pages, content, runs, customers, prospects] = await Promise.all([

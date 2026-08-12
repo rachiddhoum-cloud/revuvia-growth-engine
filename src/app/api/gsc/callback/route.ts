@@ -6,6 +6,22 @@ import { createGscClient, exchangeAuthorizationCode } from "@/lib/gsc/connector"
 import { verifyOAuthState } from "@/lib/gsc/oauth-state";
 import { ApiError } from "@/lib/http";
 
+function resolveAppOrigin(request: Request): string {
+  const fromEnv = process.env.NEXT_PUBLIC_APP_URL?.trim().replace(/\/$/, "");
+  if (fromEnv) {
+    try {
+      return new URL(fromEnv).origin;
+    } catch {
+      // ignore invalid env
+    }
+  }
+  return new URL(request.url).origin;
+}
+
+function redirectAfterOAuth(request: Request, query: string): NextResponse {
+  return NextResponse.redirect(new URL(`/connect-gsc?${query}`, resolveAppOrigin(request)));
+}
+
 /** GET /api/gsc/callback?code=...&state=... — exchanges the OAuth code, stores credentials. */
 export async function GET(request: Request): Promise<NextResponse> {
   const url = new URL(request.url);
@@ -14,21 +30,15 @@ export async function GET(request: Request): Promise<NextResponse> {
 
   const verification = verifyOAuthState(url.searchParams.get("state"));
   if (!verification.ok || !verification.ownerId) {
-    return NextResponse.redirect(
-      new URL(`/settings?gsc=error&reason=${verification.reason}`, process.env.NEXT_PUBLIC_APP_URL ?? "/")
-    );
+    return redirectAfterOAuth(request, `status=error&reason=${verification.reason}`);
   }
   const ownerId = verification.ownerId;
 
   if (errorParam) {
-    return NextResponse.redirect(
-      new URL("/settings?gsc=error&reason=" + encodeURIComponent(errorParam), process.env.NEXT_PUBLIC_APP_URL ?? "/")
-    );
+    return redirectAfterOAuth(request, `status=error&reason=${encodeURIComponent(errorParam)}`);
   }
   if (!code) {
-    return NextResponse.redirect(
-      new URL("/settings?gsc=error&reason=missing_code", process.env.NEXT_PUBLIC_APP_URL ?? "/")
-    );
+    return redirectAfterOAuth(request, "status=error&reason=missing_code");
   }
 
   const clientId = process.env.GSC_CLIENT_ID;
@@ -49,9 +59,7 @@ export async function GET(request: Request): Promise<NextResponse> {
     );
     const sites = await gsc.listSites();
     if (sites.length === 0) {
-      return NextResponse.redirect(
-        new URL("/settings?gsc=error&reason=no_sites", process.env.NEXT_PUBLIC_APP_URL ?? "/")
-      );
+      return redirectAfterOAuth(request, "status=error&reason=no_sites");
     }
 
     const { error: credError } = await sb.from("search_console_credentials").upsert(
@@ -77,12 +85,8 @@ export async function GET(request: Request): Promise<NextResponse> {
     logger.info("gsc.oauth connected", { ownerId, sites: sites.length });
   } catch (err) {
     logger.error("gsc.oauth callback failed", { ownerId }, err);
-    return NextResponse.redirect(
-      new URL("/settings?gsc=error&reason=callback_failed", process.env.NEXT_PUBLIC_APP_URL ?? "/")
-    );
+    return redirectAfterOAuth(request, "status=error&reason=callback_failed");
   }
 
-  return NextResponse.redirect(
-    new URL("/settings?gsc=connected", process.env.NEXT_PUBLIC_APP_URL ?? "/")
-  );
+  return redirectAfterOAuth(request, "status=connected");
 }

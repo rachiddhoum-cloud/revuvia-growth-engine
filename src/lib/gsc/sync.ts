@@ -16,6 +16,7 @@ import { syncGscData, type SyncSummary } from "@/lib/gsc/sync-core";
 import type { SyncStorage } from "@/lib/gsc/sync-core";
 import { todayLocal } from "@/lib/ops/publishing";
 import { toLocalIso } from "@/lib/gsc/core";
+import { resolveOwnerId } from "@/lib/owner";
 
 type StoredCredentials = GscCredentials & { lastSyncedAt: string | null };
 
@@ -71,7 +72,8 @@ async function ensureFreshToken(
 
 function buildStorage(
   sb: ReturnType<typeof createServiceRoleClient>,
-  ownerId: string
+  ownerId: string,
+  siteUrl: string
 ): SyncStorage {
   return {
     async loadLastSyncedAt() {
@@ -95,7 +97,7 @@ function buildStorage(
     async upsertQueries(rows) {
       if (rows.length === 0) return 0;
       const { error } = await sb.from("search_console_queries").upsert(
-        rows.map((r) => ({ owner_id: ownerId, ...r })),
+        rows.map((r) => ({ owner_id: ownerId, site_url: siteUrl, ...r })),
         { onConflict: "owner_id,site_url,query,search_type,date" }
       );
       if (error) throw new Error(`Failed to upsert queries: ${error.message}`);
@@ -105,7 +107,7 @@ function buildStorage(
     async upsertPages(rows) {
       if (rows.length === 0) return 0;
       const { error } = await sb.from("search_console_pages").upsert(
-        rows.map((r) => ({ owner_id: ownerId, ...r })),
+        rows.map((r) => ({ owner_id: ownerId, site_url: siteUrl, ...r })),
         { onConflict: "owner_id,site_url,url,search_type,date" }
       );
       if (error) throw new Error(`Failed to upsert pages: ${error.message}`);
@@ -115,7 +117,7 @@ function buildStorage(
     async upsertDaily(rows) {
       if (rows.length === 0) return 0;
       const { error } = await sb.from("search_console_daily_metrics").upsert(
-        rows.map((r) => ({ owner_id: ownerId, ...r })),
+        rows.map((r) => ({ owner_id: ownerId, site_url: siteUrl, ...r })),
         { onConflict: "owner_id,site_url,date,search_type" }
       );
       if (error) throw new Error(`Failed to upsert daily: ${error.message}`);
@@ -172,15 +174,16 @@ async function backfillDailyMetrics(
 }
 
 /** Full GSC sync + automation chain (cron `/api/gsc/sync`). */
-export async function runGscSync(ownerId = "system"): Promise<{
+export async function runGscSync(ownerIdInput = "system"): Promise<{
   sync: SyncSummary;
   automation: { backfilled: number; loops: string[] };
 }> {
+  const ownerId = resolveOwnerId(ownerIdInput);
   const sb = createServiceRoleClient();
   const raw = await loadCredentials(sb, ownerId);
   const credentials = raw ? await ensureFreshToken(sb, ownerId, raw) : null;
 
-  const storage = buildStorage(sb, ownerId);
+  const storage = buildStorage(sb, ownerId, credentials?.siteUrl ?? raw?.siteUrl ?? "");
   const summary = await syncGscData(
     {
       credentials,

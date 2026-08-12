@@ -190,8 +190,19 @@ async function enrollDefaultNurture(
 
 /** Load CTAs for a content item (public embed). */
 export async function loadContentCtas(contentItemId: string, ownerId?: string) {
-  const owner = resolveOwnerId(ownerId);
   const sb = createServiceRoleClient();
+
+  // Public embed : dériver l'owner depuis content_items pour éviter un mismatch DEFAULT_OWNER_ID.
+  let owner = ownerId?.trim() ? resolveOwnerId(ownerId) : null;
+  if (!owner) {
+    const { data: item } = await sb
+      .from("content_items")
+      .select("owner_id")
+      .eq("id", contentItemId)
+      .maybeSingle();
+    owner = item?.owner_id ? String(item.owner_id) : resolveOwnerId();
+  }
+
   const { data, error } = await sb
     .from("content_ctas")
     .select("id, label, cta_type, destination_url, position, is_primary, sort_order")

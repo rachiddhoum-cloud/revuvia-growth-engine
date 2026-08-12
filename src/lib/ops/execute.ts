@@ -60,6 +60,7 @@ import { toKnowledgeEntry } from "@/lib/learning/server";
 import type { KnowledgeEntry } from "@/lib/learning/types";
 import { pushArticleToMarketingSite } from "@/lib/publishing/site-bridge";
 import { blogPostUrl } from "@/lib/publishing/site-config";
+import { resolveOwnerId } from "@/lib/owner";
 
 /** Topic words from a title (fuzzy knowledge matching). */
 function topicWords(title: string): string {
@@ -131,7 +132,10 @@ async function loadOutreachInput(
   ]);
   if (pageRows.error) throw new Error(`Failed to load GSC pages: ${pageRows.error.message}`);
   if (linkRows.error) throw new Error(`Failed to load internal links: ${linkRows.error.message}`);
-  if (backlinkRows.error) throw new Error(`Failed to load backlinks: ${backlinkRows.error.message}`);
+  // Ahrefs table optional until Sprint 6 migrations are applied in prod.
+  if (backlinkRows.error) {
+    logger.warn("ops.ahrefs_backlinks unavailable", { error: backlinkRows.error.message });
+  }
 
   const clicksByUrl = new Map<string, number>();
   const impressionsByUrl = new Map<string, number>();
@@ -189,8 +193,9 @@ async function loadOutreachInput(
 
 /** Friday/outreach cron: build and persist the backlink outreach queue. */
 export async function runOutreachQueue(
-  ownerId = "system"
+  ownerIdInput = "system"
 ): Promise<{ ok: boolean; plan: OutreachPlan; artifacts: Record<string, unknown> }> {
+  const ownerId = resolveOwnerId(ownerIdInput);
   const sb = createServiceRoleClient();
   const input = await loadOutreachInput(sb, ownerId);
   const plan = buildOutreachQueue(input);
@@ -200,7 +205,10 @@ export async function runOutreachQueue(
     .from("outreach_tasks")
     .select("page_url,status")
     .eq("owner_id", ownerId);
-  if (existingError) throw new Error(`Failed to load outreach tasks: ${existingError.message}`);
+  if (existingError) {
+    logger.warn("ops.outreach_tasks unavailable", { error: existingError.message });
+    return { ok: true, plan, artifacts: { targets: 0, skipped: true } };
+  }
   const statusByUrl = new Map((existing ?? []).map((r) => [r.page_url, r.status]));
 
   for (const task of plan.tasks) {
@@ -309,7 +317,8 @@ function calendarFromReport(row: Record<string, unknown> | null): ExecutionCalen
 }
 
 /** Monday cron: run every optimizer loop and persist all weekly artifacts. */
-export async function executeWeeklyLoop(ownerId = "system"): Promise<ExecutionSummary> {
+export async function executeWeeklyLoop(ownerIdInput = "system"): Promise<ExecutionSummary> {
+  const ownerId = resolveOwnerId(ownerIdInput);
   const input = await loadGrowthSnapshot(ownerId, 7);
   const snapshot = buildGrowthSnapshot(input);
   const sb = createServiceRoleClient();
@@ -429,12 +438,14 @@ export async function executeWeeklyLoop(ownerId = "system"): Promise<ExecutionSu
 
   // Sprint 8 — decision optimizer: attach historical evidence to every
   // opportunity (Phase 3) using the knowledge base.
-  const { data: kbRows } = await sb
+  const { data: kbRows, error: kbError } = await sb
     .from("knowledge_base")
     .select("strategy_type,key,confidence,attempts,successes,failures,metrics,uplift_pct,evidence,learned_at")
     .eq("owner_id", ownerId);
-  if (kbRows === null) throw new Error("Failed to load knowledge base");
-  const knowledge: KnowledgeEntry[] = kbRows.map(toKnowledgeEntry);
+  if (kbError) {
+    logger.warn("ops.knowledge_base unavailable", { error: kbError.message });
+  }
+  const knowledge: KnowledgeEntry[] = (kbRows ?? []).map(toKnowledgeEntry);
   const opportunityEvidence = (opp: { title: string }) =>
     findEvidence(knowledge, "keyword_cluster", undefined, topicWords(opp.title)).slice(0, 1);
 
@@ -548,7 +559,8 @@ export async function executeWeeklyLoop(ownerId = "system"): Promise<ExecutionSu
 }
 
 /** Daily cron: ensure the publishing queue exists, then execute due slots. */
-export async function runPublishing(ownerId = "system"): Promise<ExecutionSummary> {
+export async function runPublishing(ownerIdInput = "system"): Promise<ExecutionSummary> {
+  const ownerId = resolveOwnerId(ownerIdInput);
   const input = await loadGrowthSnapshot(ownerId, 7);
   const snapshot = buildGrowthSnapshot(input);
   const sb = createServiceRoleClient();
@@ -675,7 +687,8 @@ export async function runPublishing(ownerId = "system"): Promise<ExecutionSummar
 }
 
 /** Daily morning cron: founder inbox with today's top 5 (≤ 2 min read). */
-export async function runFounderInbox(ownerId = "system"): Promise<ExecutionSummary> {
+export async function runFounderInbox(ownerIdInput = "system"): Promise<ExecutionSummary> {
+  const ownerId = resolveOwnerId(ownerIdInput);
   const input = await loadGrowthSnapshot(ownerId, 7);
   const snapshot = buildGrowthSnapshot(input);
   const sb = createServiceRoleClient();

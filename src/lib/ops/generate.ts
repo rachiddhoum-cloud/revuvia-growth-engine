@@ -10,6 +10,7 @@ import { createServiceRoleClient } from "@/lib/supabase";
 import type { Json } from "@/types/supabase";
 import { loadGrowthSnapshot } from "@/lib/ops/load";
 import { buildGrowthSnapshot } from "@/lib/ops/snapshot";
+import { resolveOwnerId } from "@/lib/owner";
 import {
   buildActionPlan,
   buildCeoReport,
@@ -34,8 +35,9 @@ export interface GenerateResult {
 
 export async function generateOpsArtifact(
   artifact: OpsArtifact,
-  ownerId = "system"
+  ownerIdInput = "system"
 ): Promise<GenerateResult> {
+  const ownerId = resolveOwnerId(ownerIdInput);
   const input = await loadGrowthSnapshot(ownerId, 7);
   const snapshot = buildGrowthSnapshot(input);
   const periodStart = snapshot.weekStart;

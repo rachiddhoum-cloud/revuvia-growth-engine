@@ -38,17 +38,22 @@ function mapRow(row: ContentRow): PublicBlogArticle {
 
 /** Published SEO articles for the public blog API and /blog pages. */
 export async function loadPublicBlogArticles(ownerId?: string): Promise<PublicBlogArticle[]> {
-  const owner = resolveOwnerId(ownerId);
   const sb = createServiceRoleClient();
-  const { data, error } = await sb
+  let query = sb
     .from("content_items")
     .select(
       "id,slug,title,excerpt,body_markdown,meta_title,meta_description,tags,published_at,cover_url,kind,status"
     )
-    .eq("owner_id", owner)
     .eq("kind", "article")
     .eq("status", "published")
     .order("published_at", { ascending: false, nullsFirst: false });
+
+  // Feed public Revuvia : tous les articles publiés (évite mismatch DEFAULT_OWNER_ID).
+  if (ownerId?.trim()) {
+    query = query.eq("owner_id", resolveOwnerId(ownerId));
+  }
+
+  const { data, error } = await query;
 
   if (error) throw new Error(`Failed to load blog articles: ${error.message}`);
   return (data ?? []).map((row) => mapRow(row as ContentRow));
@@ -58,18 +63,21 @@ export async function loadPublicBlogArticleBySlug(
   slug: string,
   ownerId?: string
 ): Promise<PublicBlogArticle | null> {
-  const owner = resolveOwnerId(ownerId);
   const sb = createServiceRoleClient();
-  const { data, error } = await sb
+  let query = sb
     .from("content_items")
     .select(
       "id,slug,title,excerpt,body_markdown,meta_title,meta_description,tags,published_at,cover_url,kind,status"
     )
-    .eq("owner_id", owner)
     .eq("kind", "article")
     .eq("status", "published")
-    .eq("slug", slug.trim())
-    .maybeSingle();
+    .eq("slug", slug.trim());
+
+  if (ownerId?.trim()) {
+    query = query.eq("owner_id", resolveOwnerId(ownerId));
+  }
+
+  const { data, error } = await query.maybeSingle();
 
   if (error) throw new Error(`Failed to load blog article: ${error.message}`);
   if (!data) return null;

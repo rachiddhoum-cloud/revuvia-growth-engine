@@ -1,11 +1,10 @@
-import { Suspense } from "react";
-
 import LoginForm from "./login-form";
 
-export default function LoginPage() {
-  return (
-    <Suspense fallback={<div className="flex min-h-screen items-center justify-center">Chargement…</div>}>
-      <LoginForm />
-    </Suspense>
-  );
+interface LoginPageProps {
+  searchParams: Promise<{ next?: string }>;
+}
+
+export default async function LoginPage({ searchParams }: LoginPageProps) {
+  const { next } = await searchParams;
+  return <LoginForm nextPath={next ?? "/dashboard"} />;
 }

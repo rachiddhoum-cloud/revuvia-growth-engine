@@ -12,6 +12,7 @@ const PUBLIC_API_PATHS = new Set([
   "/api/public/leads",
   "/api/public/cta",
   "/api/public/blog",
+  "/api/public/gsc-connect",
 ]);
 
 function isPublicApi(pathname: string): boolean {
@@ -20,7 +21,7 @@ function isPublicApi(pathname: string): boolean {
 }
 
 function isPublicPage(pathname: string): boolean {
-  return pathname === "/blog" || pathname.startsWith("/blog/");
+  return pathname === "/blog" || pathname.startsWith("/blog/") || pathname === "/connect-gsc";
 }
 
 function isStaticAsset(pathname: string): boolean {
